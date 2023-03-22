@@ -1,0 +1,52 @@
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QWidget>
+#include <QtWidgets/QTextEdit>
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QFileDialog>
+
+class Notepad : public QWidget {
+public:
+    Notepad() {
+        // Tworzenie okna z tekstem
+        m_textEdit = new QTextEdit();
+        m_textEdit->setAcceptRichText(false);
+        
+        // Tworzenie przycisku "Zapisz"
+        QPushButton* saveButton = new QPushButton("Zapisz");
+        connect(saveButton, &QPushButton::clicked, this, &Notepad::onSaveClicked);
+        
+        // Tworzenie układu pionowego i dodawanie do niego elementów
+        QVBoxLayout* layout = new QVBoxLayout();
+        layout->addWidget(m_textEdit);
+        layout->addWidget(saveButton);
+        setLayout(layout);
+    }
+    
+private:
+    QTextEdit* m_textEdit;
+    
+    void onSaveClicked() {
+        // Pobranie ścieżki do pliku zapisu
+        QString fileName = QFileDialog::getSaveFileName(this, "Zapisz plik", "", "Tekst (*.txt)");
+        
+        // Zapis tekstu do pliku
+        if (!fileName.isEmpty()) {
+            QFile file(fileName);
+            if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+                QTextStream stream(&file);
+                stream << m_textEdit->toPlainText();
+                file.close();
+            }
+        }
+    }
+};
+
+int main(int argc, char *argv[]) {
+    QApplication app(argc, argv);
+    
+    Notepad notepad;
+    notepad.show();
+    
+    return app.exec();
+}

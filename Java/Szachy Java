@@ -1,0 +1,47 @@
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+
+public class ChessBoard extends JFrame {
+
+    private JPanel chessBoard;
+    private JLabel statusBar;
+    
+    public ChessBoard() {
+        initUI();
+    }
+
+    private void initUI() {
+        setTitle("Szachy");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        
+        chessBoard = new JPanel(new GridLayout(8, 8));
+        chessBoard.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        
+        for (int i = 0; i < 64; i++) {
+            JPanel square = new JPanel(new BorderLayout());
+            chessBoard.add(square);
+            
+            int row = (i / 8) % 2;
+            if (row == 0)
+                square.setBackground(i % 2 == 0 ? Color.WHITE : Color.BLACK);
+            else
+                square.setBackground(i % 2 == 0 ? Color.BLACK : Color.WHITE);
+        }
+        
+        statusBar = new JLabel("Witaj w grze Szachy!");
+        
+        add(chessBoard, BorderLayout.CENTER);
+        add(statusBar, BorderLayout.SOUTH);
+        
+        setSize(400, 400);
+        setLocationRelativeTo(null);
+    }
+    
+    public static void main(String[] args) {
+        EventQueue.invokeLater(() -> {
+            ChessBoard ex = new ChessBoard();
+            ex.setVisible(true);
+        });
+    }
+}

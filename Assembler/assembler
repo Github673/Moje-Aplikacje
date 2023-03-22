@@ -1,0 +1,136 @@
+.MODEL SMALL
+.STACK 100h
+
+.DATA
+    ROWS        DW 25
+    COLS        DW 80
+    SNAKE_X     DW 20
+    SNAKE_Y     DW 10
+    SNAKE_LEN   DW 5
+    SNAKE_BODY  DB 5 DUP('?')
+    DIR         DB 'RIGHT'
+    FOOD_X      DW 40
+    FOOD_Y      DW 12
+    SCORE       DW 0
+    MSG_SCORE   DB 'SCORE: $'
+
+.CODE
+    MAIN PROC
+        MOV AX, @DATA
+        MOV DS, AX
+
+        CALL INIT_SCREEN
+
+        MOV AH, 0
+        INT 16h
+
+        MOV AH, 4Ch
+        INT 21h
+
+    MAIN ENDP
+
+    INIT_SCREEN PROC
+        MOV AH, 0
+        MOV AL, 13h
+        INT 10h
+
+        MOV AH, 9
+        MOV DX, OFFSET MSG_SCORE
+        INT 21h
+
+        MOV DX, OFFSET SCORE
+        CALL WRITE_HEX_WORD
+
+        MOV AX, 0B800h
+        MOV ES, AX
+
+        MOV DI, SNAKE_X
+        MOV SI, SNAKE_Y
+        ADD DI, SI
+        SHL DI, 1
+        ADD DI, DI
+
+        MOV CX, SNAKE_LEN
+        MOV AL, 'X'
+        REP STOSW
+
+        CALL GENERATE_FOOD
+
+        CALL MOVE_SNAKE
+
+        RET
+    INIT_SCREEN ENDP
+
+    GENERATE_FOOD PROC
+        MOV AH, 0
+        INT 16h
+
+        MOV DX, SNAKE_X
+        ADD DX, 1
+        CMP DX, COLS
+        JB X_OK
+        MOV DX, 0
+    X_OK:
+        MOV FOOD_X, DX
+
+        MOV DX, SNAKE_Y
+        ADD DX, 1
+        CMP DX, ROWS
+        JB Y_OK
+        MOV DX, 0
+    Y_OK:
+        MOV FOOD_Y, DX
+
+        MOV AX, 0B800h
+        MOV ES, AX
+
+        MOV DI, FOOD_X
+        MOV SI, FOOD_Y
+        ADD DI, SI
+        SHL DI, 1
+        ADD DI, DI
+
+        MOV AL, '*'
+        MOV AH, 0Fh
+        MOV BYTE PTR ES:[DI], AL
+
+        RET
+    GENERATE_FOOD ENDP
+
+    MOVE_SNAKE PROC
+        MOV DX, 1000
+        MOV CX, SNAKE_LEN
+
+    MOVE_SNAKE_LOOP:
+        MOV AH, 0
+        INT 16h
+
+        MOV BX, 0B800h
+        MOV ES, BX
+
+        MOV DI, SNAKE_X
+        MOV SI, SNAKE_Y
+        ADD DI, SI
+        SHL DI, 1
+        ADD DI, DI
+
+        MOV AL, ' '
+        MOV AH, 0Fh
+        MOV BYTE PTR ES:[DI], AL
+
+        MOV SI, SNAKE_LEN
+        DEC SI
+
+    MOVE_SNAKE_BODY:
+        CMP SI, 0
+        JE MOVE_SNAKE_BODY_LAST
+
+        MOV AL, SNAKE_BODY[SI-1]
+        MOV SNAKE_BODY[SI], AL
+
+        DEC SI
+        JMP MOVE_SNAKE_BODY
+
+    MOVE_SNAKE_BODY_LAST:
+        MOV AL, SNAKE_BODY[SI]
+        MOV SNAKE_BODY[
